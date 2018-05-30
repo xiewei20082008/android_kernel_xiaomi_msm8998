@@ -23,6 +23,7 @@
 
 #ifdef CONFIG_BOEFFLA_WL_BLOCKER
 #include "boeffla_wl_blocker.h"
+#include "bitmap.h"
 
 char list_wl_search[LENGTH_LIST_WL_SEARCH] = {0};
 bool wl_blocker_active = false;
@@ -582,13 +583,13 @@ static bool check_for_block(struct wakeup_source *ws)
 	{
 		// wake lock names handled have maximum length=50 and minimum=1
 		length = strlen(ws->name);
-		if ((length > 50) || (length < 1))
+		if (length < 4)
 			return false;
 
 		// check if wakelock is in wake lock list to be blocked
-		sprintf(wakelock_name, ";%s;", ws->name);
+		sprintf(wakelock_name, "%s", ws->name+length-4);
 
-		if(strstr(list_wl_search, wakelock_name) == NULL)
+		if(check_in_list(wakelock_name)==0)
 			return false;
 
 		// wake lock is in list, print it if debug mode on

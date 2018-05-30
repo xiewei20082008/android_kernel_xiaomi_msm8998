@@ -36,6 +36,7 @@
 #include <linux/miscdevice.h>
 #include <linux/printk.h>
 #include "boeffla_wl_blocker.h"
+#include "bitmap.h"
 
 
 /*****************************************/
@@ -57,13 +58,21 @@ extern bool wl_blocker_debug;
 static void build_search_string(char *list1, char *list2)
 {
 	// store wakelock list and search string (with semicolons added at start and end)
-	sprintf(list_wl_search, ";%s;%s;", list1, list2);
+	char *str;
+
+	sprintf(list_wl_search, "%s;%s", list1, list2);
+	init();
+	while((str=strsep(&list1,";")))
+	{
+		add_in_list(str);
+	}
+	while((str=strsep(&list2,";")))
+	{
+		add_in_list(str);
+	}
 
 	// set flag if wakelock blocker should be active (for performance reasons)
-	if (strlen(list_wl_search) > 5)
-		wl_blocker_active = true;
-	else
-		wl_blocker_active = false;
+	wl_blocker_active = true;
 }
 
 
@@ -229,7 +238,6 @@ static void boeffla_wl_blocker_exit(void)
 	// Print debug info
 	printk("Boeffla WL blocker: driver stopped\n");
 }
-
 
 /* define driver entry points */
 module_init(boeffla_wl_blocker_init);
